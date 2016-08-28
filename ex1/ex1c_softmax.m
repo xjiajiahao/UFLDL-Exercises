@@ -13,7 +13,7 @@ num_classes = 10;
 [train,test] = ex1_load_mnist(binary_digits);
 
 % Add row of 1s to the dataset to act as an intercept term.
-train.X = [ones(1,size(train.X,2)); train.X]; 
+train.X = [ones(1,size(train.X,2)); train.X];
 test.X = [ones(1,size(test.X,2)); test.X];
 train.y = train.y+1; % make labels 1-based.
 test.y = test.y+1; % make labels 1-based.
@@ -30,7 +30,7 @@ options = struct('MaxIter', 200);
 % Inside minFunc, theta will be stretched out into a long vector (theta(:)).
 % We only use num_classes-1 columns, since the last column is always assumed 0.
 theta = rand(n,num_classes-1)*0.001;
-
+% @TODO stopped here
 % Call minFunc with the softmax_regression_vec.m file as objective.
 %
 % TODO:  Implement batch softmax regression in the softmax_regression_vec.m

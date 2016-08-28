@@ -6,7 +6,7 @@ function [f,g] = linear_regression(theta, X,y)
   %       X(i,j) is the i'th coordinate of the j'th example.
   %   y - The target value for each example.  y(j) is the target for example j.
   %
-  
+
   m=size(X,2);
   n=size(X,1);
 
@@ -20,5 +20,15 @@ function [f,g] = linear_regression(theta, X,y)
   % TODO:  Compute the gradient of the objective with respect to theta by looping over
   %        the examples in X and adding up the gradient for each example.  Store the
   %        computed gradient in 'g'.
-  
+
 %%% YOUR CODE HERE %%%
+hTheta = X' * theta;  % m-by-one matrix
+diff = hTheta - y';
+variance = diff.^2;
+f = f .+ 1/2 * sum(variance(:));
+
+tmpG = X * diff;
+g = g + tmpG;
+g = g(:);
+
+end
