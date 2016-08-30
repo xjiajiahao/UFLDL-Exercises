@@ -40,6 +40,9 @@ end;
 
 %% compute cost
 %%% YOUR CODE HERE %%%
+
+%%% Damn it, I wrote the wrong cost function and the wrong delta{nl}.
+
 cost = 0;
 [~,pred] = max(pred_prob);
 squaredError = (pred - labels).^2;
@@ -55,15 +58,15 @@ cost = cost + 1 / (m * 2) * sum(squaredError(:)) + ei.lambda / 2 * weightDecay;
 %%% YOUR CODE HERE %%%
 
 for ii = numHidden + 1 : -1 : 1
-    curSize = size(stack{ii}, 1);
+    fprintf('Well, the sizes are:');
+    curSize = size(stack{ii}.W, 1);
     % initialize deltaLplus1
     if ii == numHidden + 1
         devirate = (pred_prob) .* (1 - pred_prob);
-        deltaLplus1 = - (repmat(labels, curSize, 1) - pred_prob) .* devirate;
-        gradStack{ii}.W = deltaLplus1 * pred_prob';
-    else
-        gradStack{ii}.W = deltaLplus1 * (hAct{ii + 1})';
+        deltaLplus1 = -(repmat(labels, curSize, 1) - pred_prob) .* devirate;
     end
+    size(deltaLplus1)
+    gradStack{ii}.W = deltaLplus1 * (hAct{ii})';
     devirate = (hAct{ii}) .* (1 - hAct{ii});
     gradStack{ii}.b = deltaLplus1;
     % update deltaLplus1

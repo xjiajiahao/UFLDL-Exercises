@@ -2,7 +2,7 @@
 
 %  Instructions
 %  ------------
-% 
+%
 %  This file contains code that helps you get started on the
 %  convolution and pooling exercise. In this exercise, you will only
 %  need to modify cnnConvolve.m and cnnPool.m. You will not need to modify
@@ -39,7 +39,7 @@ b = rand(numFilters);
 %  Implement convolution in the function cnnConvolve in cnnConvolve.m
 
 %% Use only the first 8 images for testing
-convImages = images(:, :, 1:8); 
+convImages = images(:, :, 1:8);
 
 % NOTE: Implement cnnConvolve in cnnConvolve.m first!
 convolvedFeatures = cnnConvolve(filterDim, numFilters, convImages, W, b);
@@ -50,17 +50,17 @@ convolvedFeatures = cnnConvolve(filterDim, numFilters, convImages, W, b);
 %  activations from the sparse autoencoder
 
 % For 1000 random points
-for i = 1:1000   
+for i = 1:1000
     filterNum = randi([1, numFilters]);
     imageNum = randi([1, 8]);
     imageRow = randi([1, imageDim - filterDim + 1]);
-    imageCol = randi([1, imageDim - filterDim + 1]);    
-   
+    imageCol = randi([1, imageDim - filterDim + 1]);
+
     patch = convImages(imageRow:imageRow + filterDim - 1, imageCol:imageCol + filterDim - 1, imageNum);
 
     feature = sum(sum(patch.*W(:,:,filterNum)))+b(filterNum);
     feature = 1./(1+exp(-feature));
-    
+
     if abs(feature - convolvedFeatures(imageRow, imageCol,filterNum, imageNum)) > 1e-9
         fprintf('Convolved feature does not match test feature\n');
         fprintf('Filter Number    : %d\n', filterNum);
@@ -68,9 +68,9 @@ for i = 1:1000
         fprintf('Image Row         : %d\n', imageRow);
         fprintf('Image Column      : %d\n', imageCol);
         fprintf('Convolved feature : %0.5f\n', convolvedFeatures(imageRow, imageCol, filterNum, imageNum));
-        fprintf('Test feature : %0.5f\n', feature);       
+        fprintf('Test feature : %0.5f\n', feature);
         error('Convolved feature does not match test feature');
-    end 
+    end
 end
 
 disp('Congratulations! Your convolution code passed the test.');
@@ -90,9 +90,9 @@ pooledFeatures = cnnPool(poolDim, convolvedFeatures);
 testMatrix = reshape(1:64, 8, 8);
 expectedMatrix = [mean(mean(testMatrix(1:4, 1:4))) mean(mean(testMatrix(1:4, 5:8))); ...
                   mean(mean(testMatrix(5:8, 1:4))) mean(mean(testMatrix(5:8, 5:8))); ];
-            
+
 testMatrix = reshape(testMatrix, 8, 8, 1, 1);
-        
+
 pooledFeatures = squeeze(cnnPool(4, testMatrix));
 
 if ~isequal(pooledFeatures, expectedMatrix)

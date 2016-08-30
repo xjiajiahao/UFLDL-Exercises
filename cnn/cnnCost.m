@@ -3,13 +3,13 @@ function [cost, grad, preds] = cnnCost(theta,images,labels,numClasses,...
 % Calcualte cost and gradient for a single layer convolutional
 % neural network followed by a softmax layer with cross entropy
 % objective.
-%                            
+%
 % Parameters:
 %  theta      -  unrolled parameter vector
 %  images     -  stores images in imageDim x imageDim x numImges
 %                array
 %  numClasses -  number of classes to predict
-%  filterDim  -  dimension of convolutional filter                            
+%  filterDim  -  dimension of convolutional filter
 %  numFilters -  number of convolutional filters
 %  poolDim    -  dimension of pooling area
 %  pred       -  boolean only forward propagate and return
@@ -56,7 +56,7 @@ bd_grad = zeros(size(bd));
 
 %% Convolutional Layer
 %  For each image and each filter, convolve the image with the filter, add
-%  the bias and apply the sigmoid nonlinearity.  Then subsample the 
+%  the bias and apply the sigmoid nonlinearity.  Then subsample the
 %  convolved activations with mean pooling.  Store the results of the
 %  convolution in activations and the results of the pooling in
 %  activationsPooled.  You will need to save the convolved activations for
@@ -113,8 +113,8 @@ end;
 %  layers.  Store the errors for the next step to calculate the gradient.
 %  Backpropagating the error w.r.t the softmax layer is as usual.  To
 %  backpropagate through the pooling layer, you will need to upsample the
-%  error with respect to the pooling layer for each filter and each image.  
-%  Use the kron function and a matrix of ones to do this upsampling 
+%  error with respect to the pooling layer for each filter and each image.
+%  Use the kron function and a matrix of ones to do this upsampling
 %  quickly.
 
 %%% YOUR CODE HERE %%%

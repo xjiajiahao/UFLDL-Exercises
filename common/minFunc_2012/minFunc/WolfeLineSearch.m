@@ -31,6 +31,9 @@ function [t,f_new,g_new,funEvals,H] = WolfeLineSearch(...
 if nargout == 5
     [f_new,g_new,H] = funObj(x + t*d,varargin{:});
 else
+    fprintf('So, what is happening');
+    size(x)
+    size(t * d)
     [f_new,g_new] = funObj(x+t*d,varargin{:});
 end
 funEvals = 1;

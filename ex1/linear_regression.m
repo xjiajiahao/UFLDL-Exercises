@@ -7,9 +7,6 @@ function [f,g] = linear_regression(theta, X,y)
   %   y - The target value for each example.  y(j) is the target for example j.
   %
 
-  m=size(X,2);
-  n=size(X,1);
-
   f=0;
   g=zeros(size(theta));
 
@@ -25,7 +22,7 @@ function [f,g] = linear_regression(theta, X,y)
 hTheta = X' * theta;  % m-by-one matrix
 diff = hTheta - y';
 variance = diff.^2;
-f = f .+ 1/2 * sum(variance(:));
+f = f + 1/2 * sum(variance(:));
 
 tmpG = X * diff;
 g = g + tmpG;
