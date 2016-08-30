@@ -40,13 +40,14 @@ params = stack2params(stack);
 options = [];
 options.display = 'iter';
 options.maxFunEvals = 1e6;
-options.Method = 'lbfgs';
+options.Method = 'lbfgs';  % @NOTE what is lbfgs?
 
 %% run training
 [opt_params,opt_value,exitflag,output] = minFunc(@supervised_dnn_cost,...
     params,options,ei, data_train, labels_train);
 
 %% compute accuracy on the test and train set
+% @NOTE the tilde symbol here means placeholder, skipping the first two args
 [~, ~, pred] = supervised_dnn_cost( opt_params, ei, data_test, [], true);
 [~,pred] = max(pred);
 acc_test = mean(pred'==labels_test);
