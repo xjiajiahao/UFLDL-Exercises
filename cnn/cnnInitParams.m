@@ -2,10 +2,10 @@ function theta = cnnInitParams(imageDim,filterDim,numFilters,...
                                 poolDim,numClasses)
 % Initialize parameters for a single layer convolutional neural
 % network followed by a softmax layer.
-%                            
+%
 % Parameters:
 %  imageDim   -  height/width of image
-%  filterDim  -  dimension of convolutional filter                            
+%  filterDim  -  dimension of convolutional filter
 %  numFilters -  number of convolutional filters
 %  poolDim    -  dimension of pooling area
 %  numClasses -  number of classes to predict
@@ -15,7 +15,7 @@ function theta = cnnInitParams(imageDim,filterDim,numFilters,...
 %  theta      -  unrolled parameter vector with initialized weights
 
 %% Initialize parameters randomly based on layer sizes.
-assert(filterDim < imageDim,'filterDim must be less that imageDim');
+assert(filterDim < imageDim,'filterDim must be less than imageDim');
 
 Wc = 1e-1*randn(filterDim,filterDim,numFilters);
 
@@ -36,9 +36,8 @@ bc = zeros(numFilters, 1);
 bd = zeros(numClasses, 1);
 
 % Convert weights and bias gradients to the vector form.
-% This step will "unroll" (flatten and concatenate together) all 
-% your parameters into a vector, which can then be used with minFunc. 
+% This step will "unroll" (flatten and concatenate together) all
+% your parameters into a vector, which can then be used with minFunc.
 theta = [Wc(:) ; Wd(:) ; bc(:) ; bd(:)];
 
 end
-

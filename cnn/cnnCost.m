@@ -72,7 +72,8 @@ activations = zeros(convDim,convDim,numFilters,numImages);
 activationsPooled = zeros(outputDim,outputDim,numFilters,numImages);
 
 %%% YOUR CODE HERE %%%
-
+activations = cnnConvolve(filterDim, numFilters, images, Wc, bc);
+activationsPooled = cnnPool(poolDim, activations);
 % Reshape activations into 2-d matrix, hiddenSize x numImages,
 % for Softmax layer
 activationsPooled = reshape(activationsPooled,[],numImages);
@@ -80,7 +81,7 @@ activationsPooled = reshape(activationsPooled,[],numImages);
 %% Softmax Layer
 %  Forward propagate the pooled activations calculated above into a
 %  standard softmax layer. For your convenience we have reshaped
-%  activationPooled into a hiddenSize x numImages matrix.  Store the
+%  activationsPooled into a hiddenSize x numImages matrix.  Store the
 %  results in probs.
 
 % numClasses x numImages for storing probability that each image belongs to
@@ -88,7 +89,9 @@ activationsPooled = reshape(activationsPooled,[],numImages);
 probs = zeros(numClasses,numImages);
 
 %%% YOUR CODE HERE %%%
-
+probs = exp(bsxfun(@plus, Wd * activationsPooled, bd));
+sumP = sum(probs);
+probs = bsxfun(@rdivide, probs, sumP);
 %%======================================================================
 %% STEP 1b: Calculate Cost
 %  In this step you will use the labels given as input and the probs
@@ -98,6 +101,9 @@ probs = zeros(numClasses,numImages);
 cost = 0; % save objective into cost
 
 %%% YOUR CODE HERE %%%
+classIndices = sub2ind(size(probs), labels', 1 : size(probs, 2));
+tmpCeCost = log(probs(classIndices));
+cost = -sum(tmpCeCost(:));
 
 % Makes predictions given probs and returns without backproagating errors.
 if pred
@@ -118,7 +124,19 @@ end;
 %  quickly.
 
 %%% YOUR CODE HERE %%%
-
+map = zeros(size(probs));
+map(classIndices) = 1;
+deltaD = probs - map;
+derivate = activations .* (1 - activations);
+deltaHidden = Wd' * deltaD .* derivate;
+% upsampling
+deltaHidden = reshape(deltaHidden, outputDim, outputDim, numFilters, numImages);
+deltaPool = zeros(conVDim, convDim, numFilters, numImages);
+for imageNum = 1 : numImages
+    for filterNum = 1 : numFilters
+        deltaPool(:, :, filterNum, imageNum) = (1/poolDim^2) * kron(squeeze(deltaHidden(:, :, filterNum, imageNum)), ones(poolDim));
+    end
+end
 %%======================================================================
 %% STEP 1d: Gradient Calculation
 %  After backpropagating the errors above, we can use them to calculate the
@@ -128,6 +146,23 @@ end;
 %  for that filter with each image and aggregate over images.
 
 %%% YOUR CODE HERE %%%
+bd_grad = sum(deltaD, 2);  % [numClasses, 1]
+Wd_grad = deltaD * activationsPooled'; % [numClasses, hiddenSize]
+
+% compute bc_grad
+for ii = 1 : numFilters
+    bc_grad(ii) = sum(deltaPool(:, :, ii, :)); % [numFilters, 1]
+end
+
+% compute Wc_grad
+for imageNum = 1 : numImges
+    for filterNum = 1 : numFilters
+        % [filterDim, filterDim, numFilters]
+        im = squeeze(images(:, :, imageNum));
+        filter = rot90(squeeze(deltaPool(:, :, filterNum, imageNum)),2);
+        Wc_grad(:, :, filterNum) += conv2(im, filter, 'valid');
+    end
+end
 
 %% Unroll gradient into grad vector for minFunc
 grad = [Wc_grad(:) ; Wd_grad(:) ; bc_grad(:) ; bd_grad(:)];
