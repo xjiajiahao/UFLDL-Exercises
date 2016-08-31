@@ -69,11 +69,11 @@ activations = zeros(convDim,convDim,numFilters,numImages);
 
 % outputDim x outputDim x numFilters x numImages tensor for storing
 % subsampled activations
-activationsPooled = zeros(outputDim,outputDim,numFilters,numImages);
+activationsPooled =zeros(outputDim,outputDim,numFilters,numImages);
 
 %%% YOUR CODE HERE %%%
-activations = cnnConvolve(filterDim, numFilters, images, Wc, bc);
-activationsPooled = cnnPool(poolDim, activations);
+activations = activations + cnnConvolve(filterDim, numFilters, images, Wc, bc);
+activationsPooled = activationsPooled +  cnnPool(poolDim, activations);
 % Reshape activations into 2-d matrix, hiddenSize x numImages,
 % for Softmax layer
 activationsPooled = reshape(activationsPooled,[],numImages);
@@ -89,9 +89,10 @@ activationsPooled = reshape(activationsPooled,[],numImages);
 probs = zeros(numClasses,numImages);
 
 %%% YOUR CODE HERE %%%
-probs = exp(bsxfun(@plus, Wd * activationsPooled, bd));
-sumP = sum(probs);
+probs = probs + exp(bsxfun(@plus, Wd * activationsPooled, bd));
+sumP = sum(probs, 1);
 probs = bsxfun(@rdivide, probs, sumP);
+preds = probs;
 %%======================================================================
 %% STEP 1b: Calculate Cost
 %  In this step you will use the labels given as input and the probs
@@ -103,8 +104,12 @@ cost = 0; % save objective into cost
 %%% YOUR CODE HERE %%%
 classIndices = sub2ind(size(probs), labels', 1 : size(probs, 2));
 tmpCeCost = log(probs(classIndices));
-cost = -sum(tmpCeCost(:));
+cost = cost - sum(tmpCeCost(:));
 
+% weightDecay
+lambda = 0.0001;
+weightDecay = lambda / 2 * (sum(Wc(:) .^ 2) + sum(Wd(:) .^ 2));
+cost = cost / numImages + weightDecay;
 % Makes predictions given probs and returns without backproagating errors.
 if pred
     [~,preds] = max(probs,[],1);
@@ -128,15 +133,16 @@ map = zeros(size(probs));
 map(classIndices) = 1;
 deltaD = probs - map;
 derivate = activations .* (1 - activations);
-deltaHidden = Wd' * deltaD .* derivate;
+deltaHidden = Wd' * deltaD;
 % upsampling
 deltaHidden = reshape(deltaHidden, outputDim, outputDim, numFilters, numImages);
-deltaPool = zeros(conVDim, convDim, numFilters, numImages);
+deltaPool = zeros(convDim, convDim, numFilters, numImages);
 for imageNum = 1 : numImages
     for filterNum = 1 : numFilters
-        deltaPool(:, :, filterNum, imageNum) = (1/poolDim^2) * kron(squeeze(deltaHidden(:, :, filterNum, imageNum)), ones(poolDim));
+        deltaPool(:, :, filterNum, imageNum) = (1 / poolDim^2) * kron(squeeze(deltaHidden(:, :, filterNum, imageNum)), ones(poolDim));
     end
 end
+deltaPool = deltaPool .* derivate;
 %%======================================================================
 %% STEP 1d: Gradient Calculation
 %  After backpropagating the errors above, we can use them to calculate the
@@ -146,24 +152,26 @@ end
 %  for that filter with each image and aggregate over images.
 
 %%% YOUR CODE HERE %%%
-bd_grad = sum(deltaD, 2);  % [numClasses, 1]
-Wd_grad = deltaD * activationsPooled'; % [numClasses, hiddenSize]
+bd_grad = bd_grad + (1 / numImages) .* sum(deltaD, 2);  % [numClasses, 1]
+Wd_grad = Wd_grad + (1 / numImages) .* (deltaD * activationsPooled') + lambda * Wd; % [numClasses, hiddenSize]
 
 % compute bc_grad
 for ii = 1 : numFilters
-    bc_grad(ii) = sum(deltaPool(:, :, ii, :)); % [numFilters, 1]
+    tmpB = deltaPool(:, :, ii, :);
+    bc_grad(ii) = (1 / numImages) .* sum(tmpB(:)); % [numFilters, 1]
 end
 
 % compute Wc_grad
-for imageNum = 1 : numImges
-    for filterNum = 1 : numFilters
+for filterNum = 1 : numFilters
+    for imageNum = 1 : numImages
         % [filterDim, filterDim, numFilters]
         im = squeeze(images(:, :, imageNum));
-        filter = rot90(squeeze(deltaPool(:, :, filterNum, imageNum)),2);
-        Wc_grad(:, :, filterNum) += conv2(im, filter, 'valid');
+        filter = rot90(squeeze(deltaPool(:, :, filterNum, imageNum)), 2);
+        Wc_grad(:, :, filterNum) = Wc_grad(:, :, filterNum) + conv2(im, filter, 'valid');
     end
+    Wc_grad(:, :, filterNum) = Wc_grad(:, :, filterNum) .* (1 / numImages);
 end
-
+Wc_grad = Wc_grad + lambda * Wc;
 %% Unroll gradient into grad vector for minFunc
 grad = [Wc_grad(:) ; Wd_grad(:) ; bc_grad(:) ; bd_grad(:)];
 

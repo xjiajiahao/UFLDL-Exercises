@@ -36,7 +36,7 @@ for imageNum = 1:numImages
         pooledImage = zeros(convolvedDim - poolDim + 1);
         W = ones(poolDim);
         tmpConvolvedFeatures = squeeze(convolvedFeatures(:, :, filterNum, imageNum));
-        pooledImage += conv2(tmpConvolvedFeatures, W, 'valid');
+        pooledImage = pooledImage + conv2(tmpConvolvedFeatures, W, 'valid');
         % subsampling
         tmpPooledFeatures = pooledImage(1:poolDim:convolvedDim, 1:poolDim:convolvedDim);
         % averaging
