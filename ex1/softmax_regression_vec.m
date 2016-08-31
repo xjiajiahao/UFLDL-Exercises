@@ -30,6 +30,7 @@ function [f,g] = softmax_regression(theta, X,y)
   hTheta = exp(theta' * X);
   sumP = sum(hTheta);
   hTheta = hTheta ./ repmat(sumP, num_classes - 1, 1);
+  map = zeros(num_classes - 1, m);
   for ii = 1 : m
     if (y(ii) ~= 10)
         map(y(ii), ii) = 1;
